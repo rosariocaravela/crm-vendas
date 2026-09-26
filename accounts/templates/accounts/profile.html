@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu Perfil | CRM Vendas{% endblock %}
+{% block page_title %}Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="bg-dark-950 p-6 rounded-xl border border-dark-700">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Info Básica do Usuário -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-4 border-b border-dark-700 pb-2">Informações Pessoais</h3>
+                <div class="space-y-4">
+                    {% for field in u_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="text-red-400 text-xs italic mt-1">{{ field.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Info do Perfil -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-4 border-b border-dark-700 pb-2">Detalhes da Conta</h3>
+                <div class="space-y-4">
+                    {% for field in p_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="text-red-400 text-xs italic mt-1">{{ field.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="mt-8 flex justify-end">
+            <button type="submit" class="btn-primary">
+                Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ client.name }} | CRM Vendas{% endblock %}
+
+{% block page_title %}{{ client.name }}{% endblock %}
+
+{% block header_actions %}
+<div class="flex gap-3">
+    <a href="{% url 'clients:list' %}" class="btn-secondary flex items-center gap-2">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+    <a href="{% url 'clients:edit' client.pk %}" class="btn-secondary flex items-center gap-2">
+        <i class="fas fa-edit"></i> Editar
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Client Info -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="stat-card">
+            <div class="flex justify-between items-start mb-6">
+                <h3 class="text-xl font-bold text-dark-200">Informações do Cliente</h3>
+                <div>
+                    {% if client.status == 'ATIVO' %}
+                        <span class="badge badge-green">Ativo</span>
+                    {% elif client.status == 'LEAD' %}
+                        <span class="badge badge-yellow">Lead</span>
+                    {% else %}
+                        <span class="badge badge-red">Inativo</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <span class="block text-sm font-medium text-dark-400 mb-1">Email</span>
+                    <span class="text-dark-200">{{ client.email|default:"Não informado" }}</span>
+                </div>
+                <div>
+                    <span class="block text-sm font-medium text-dark-400 mb-1">Telefone</span>
+                    <span class="text-dark-200">{{ client.phone|default:"Não informado" }}</span>
+                </div>
+                <div>
+                    <span class="block text-sm font-medium text-dark-400 mb-1">Empresa</span>
+                    <span class="text-dark-200">{{ client.company|default:"Não informado" }}</span>
+                </div>
+                <div>
+                    <span class="block text-sm font-medium text-dark-400 mb-1">Adicionado por</span>
+                    <span class="text-dark-200">{{ client.created_by.username|default:"Sistema" }} em {{ client.created_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                
+                {% if client.address %}
+                <div class="md:col-span-2">
+                    <span class="block text-sm font-medium text-dark-400 mb-1">Endereço</span>
+                    <p class="text-dark-200 whitespace-pre-line">{{ client.address }}</p>
+                </div>
+                {% endif %}
+                
+                {% if client.notes %}
+                <div class="md:col-span-2 mt-2 pt-4 border-t border-dark-700">
+                    <span class="block text-sm font-medium text-dark-400 mb-1">Observações</span>
+                    <p class="text-dark-200 whitespace-pre-line">{{ client.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Interactions -->
+    <div class="space-y-6">
+        <!-- Add Interaction Form -->
+        <div class="stat-card">
+            <h3 class="text-lg font-bold text-dark-200 mb-4">Nova Interação</h3>
+            <form method="POST" action="{% url 'clients:add_interaction' client.pk %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-400 mb-1">Tipo</label>
+                        {{ interaction_form.type }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-dark-400 mb-1">Descrição</label>
+                        {{ interaction_form.description }}
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Adicionar Interação</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Interactions Timeline -->
+        <div class="stat-card">
+            <h3 class="text-lg font-bold text-dark-200 mb-4">Histórico</h3>
+            
+            <div class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-dark-700 before:to-transparent">
+                {% for interaction in client.interactions.all %}
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <!-- Icon -->
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-950 
+                        {% if interaction.type == 'LIGAÇÃO' %}bg-blue-500 text-white
+                        {% elif interaction.type == 'EMAIL' %}bg-primary-500 text-white
+                        {% elif interaction.type == 'REUNIÃO' %}bg-green-500 text-white
+                        {% else %}bg-yellow-500 text-white{% endif %} 
+                        shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 absolute left-0 md:left-1/2">
+                        {% if interaction.type == 'LIGAÇÃO' %}
+                            <i class="fas fa-phone"></i>
+                        {% elif interaction.type == 'EMAIL' %}
+                            <i class="fas fa-envelope"></i>
+                        {% elif interaction.type == 'REUNIÃO' %}
+                            <i class="fas fa-handshake"></i>
+                        {% else %}
+                            <i class="fas fa-sticky-note"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-dark-900 border border-dark-700 p-4 rounded-xl ml-auto md:ml-0 md:group-odd:text-right">
+                        <div class="flex flex-col md:group-odd:items-end">
+                            <span class="text-sm font-medium text-dark-200">{{ interaction.get_type_display }}</span>
+                            <span class="text-xs text-dark-400 mb-2">{{ interaction.created_at|date:"d/m/Y H:i" }} por {{ interaction.created_by.username|default:"Sistema" }}</span>
+                            <p class="text-sm text-dark-400 whitespace-pre-line text-left">{{ interaction.description }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-dark-400 relative z-10">
+                    Nenhuma interação registrada.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

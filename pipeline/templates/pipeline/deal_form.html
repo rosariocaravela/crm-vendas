@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Editar{% else %}Nova{% endif %} Oportunidade | CRM Vendas{% endblock %}
+
+{% block page_title %}{% if is_edit %}Editar Oportunidade{% else %}Nova Oportunidade{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bg-dark-950 border border-dark-700 rounded-xl p-6 max-w-4xl fade-in">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="bg-red-900/50 border border-red-500 text-red-200 p-4 rounded-md mb-6">
+            Por favor, corrija os erros abaixo.
+        </div>
+        {% endif %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">Título</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.value.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">Valor (R$)</label>
+                {{ form.value }}
+                {% if form.value.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.value.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.client.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">Cliente</label>
+                {{ form.client }}
+                {% if form.client.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.client.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.stage.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">Estágio</label>
+                {{ form.stage }}
+                {% if form.stage.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.stage.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-6">
+            <div>
+                <label for="{{ form.expected_close_date.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">Data de Fechamento Esperada</label>
+                {{ form.expected_close_date }}
+                {% if form.expected_close_date.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.expected_close_date.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-dark-200 mb-1">Descrição</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="flex justify-end gap-3 pt-4 border-t border-dark-700">
+            <a href="{% url 'pipeline:board' %}" class="btn-secondary">Cancelar</a>
+            <button type="submit" class="btn-primary">Salvar Oportunidade</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

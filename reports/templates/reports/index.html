@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Relatórios{% endblock %}
+
+{% block content %}
+<div class="bg-dark-950 border border-dark-700 rounded-xl p-6 mb-6">
+    <form method="get" class="flex items-end gap-4">
+        <div>
+            <label for="date_from" class="block text-sm font-medium text-dark-200 mb-1">De</label>
+            <input type="date" name="date_from" id="date_from" value="{{ date_from|default:'' }}" class="form-input">
+        </div>
+        <div>
+            <label for="date_to" class="block text-sm font-medium text-dark-200 mb-1">Até</label>
+            <input type="date" name="date_to" id="date_to" value="{{ date_to|default:'' }}" class="form-input">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="btn-primary">Filtrar</button>
+            <a href="{% url 'reports:index' %}" class="btn-secondary">Limpar</a>
+        </div>
+    </form>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <h3 class="text-sm font-medium text-dark-400">Clientes Cadastrados</h3>
+        <p class="text-2xl font-semibold text-dark-200 mt-2">{{ clients_count }}</p>
+    </div>
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <h3 class="text-sm font-medium text-dark-400">Oportunidades Criadas</h3>
+        <p class="text-2xl font-semibold text-dark-200 mt-2">{{ deals_count }}</p>
+    </div>
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <h3 class="text-sm font-medium text-dark-400">Negócios Ganhos</h3>
+        <p class="text-2xl font-semibold text-dark-200 mt-2">{{ won_deals_count }} (R$ {{ won_deals_value|floatformat:2|intcomma }})</p>
+    </div>
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <h3 class="text-sm font-medium text-dark-400">Negócios Perdidos</h3>
+        <p class="text-2xl font-semibold text-dark-200 mt-2">{{ lost_deals_count }}</p>
+    </div>
+</div>
+
+<h3 class="text-xl font-semibold text-dark-200 mb-4">Exportar Dados</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6 flex flex-col items-center text-center">
+        <i class="fas fa-file-excel text-4xl text-green-500 mb-4"></i>
+        <h4 class="text-lg font-medium text-dark-200 mb-2">Exportar Clientes</h4>
+        <p class="text-sm text-dark-400 mb-4 flex-grow">Gere uma planilha Excel completa com todos os dados dos clientes cadastrados no sistema.</p>
+        <a href="{% url 'reports:export_clients_excel' %}" class="btn-success w-full justify-center">
+            <i class="fas fa-download mr-2"></i> Baixar Excel
+        </a>
+    </div>
+    
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6 flex flex-col items-center text-center">
+        <i class="fas fa-file-excel text-4xl text-green-500 mb-4"></i>
+        <h4 class="text-lg font-medium text-dark-200 mb-2">Exportar Oportunidades</h4>
+        <p class="text-sm text-dark-400 mb-4 flex-grow">Faça o download de todas as oportunidades e negócios em formato Excel.</p>
+        <a href="{% url 'reports:export_deals_excel' %}" class="btn-success w-full justify-center">
+            <i class="fas fa-download mr-2"></i> Baixar Excel
+        </a>
+    </div>
+    
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6 flex flex-col items-center text-center">
+        <i class="fas fa-file-pdf text-4xl text-red-500 mb-4"></i>
+        <h4 class="text-lg font-medium text-dark-200 mb-2">Relatório Completo</h4>
+        <p class="text-sm text-dark-400 mb-4 flex-grow">Gere um relatório em PDF com o resumo das métricas e listagem de oportunidades.</p>
+        <a href="{% url 'reports:export_report_pdf' %}" class="btn-danger w-full justify-center">
+            <i class="fas fa-file-pdf mr-2"></i> Baixar PDF
+        </a>
+    </div>
+</div>
+{% endblock %}

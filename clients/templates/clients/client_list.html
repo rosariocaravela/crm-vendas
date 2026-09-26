@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes | CRM Vendas{% endblock %}
+
+{% block page_title %}Clientes{% endblock %}
+
+{% block header_actions %}
+<div class="flex flex-col sm:flex-row gap-4 items-center">
+    <form method="GET" class="flex gap-2 w-full sm:w-auto">
+        <input type="text" name="q" value="{{ search }}" placeholder="Buscar por nome, email, empresa..." class="form-input flex-1 min-w-[250px]">
+        <select name="status" class="form-select">
+            <option value="">Todos os Status</option>
+            <option value="ATIVO" {% if status == 'ATIVO' %}selected{% endif %}>Ativo</option>
+            <option value="LEAD" {% if status == 'LEAD' %}selected{% endif %}>Lead</option>
+            <option value="INATIVO" {% if status == 'INATIVO' %}selected{% endif %}>Inativo</option>
+        </select>
+        <button type="submit" class="btn-secondary">Filtrar</button>
+    </form>
+    <a href="{% url 'clients:create' %}" class="btn-primary flex items-center gap-2 whitespace-nowrap">
+        <i class="fas fa-plus"></i> Novo Cliente
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="stat-card">
+    <div class="overflow-x-auto">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Empresa</th>
+                    <th>Telefone</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in page_obj %}
+                <tr>
+                    <td class="font-medium text-dark-200">{{ client.name }}</td>
+                    <td class="text-dark-400">{{ client.email|default:"-" }}</td>
+                    <td class="text-dark-400">{{ client.company|default:"-" }}</td>
+                    <td class="text-dark-400">{{ client.phone|default:"-" }}</td>
+                    <td>
+                        {% if client.status == 'ATIVO' %}
+                            <span class="badge badge-green">Ativo</span>
+                        {% elif client.status == 'LEAD' %}
+                            <span class="badge badge-yellow">Lead</span>
+                        {% else %}
+                            <span class="badge badge-red">Inativo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-dark-400 text-sm">{{ client.created_at|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="flex items-center gap-3 text-dark-400">
+                            <a href="{% url 'clients:detail' client.pk %}" class="hover:text-primary-400 transition-colors" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'clients:edit' client.pk %}" class="hover:text-primary-400 transition-colors" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{% url 'clients:delete' client.pk %}" class="inline m-0 p-0" onsubmit="return confirm('Tem certeza que deseja excluir o cliente {{ client.name }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="hover:text-red-400 transition-colors bg-transparent border-0 cursor-pointer" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-dark-400">
+                        Nenhum cliente encontrado.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between mt-6 pt-4 border-t border-dark-700">
+        <div class="text-sm text-dark-400">
+            Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} resultados
+        </div>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search %}&q={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-secondary !p-2"><i class="fas fa-angle-double-left"></i></a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-secondary !p-2"><i class="fas fa-angle-left"></i></a>
+            {% endif %}
+            
+            <span class="btn-secondary bg-dark-800 text-dark-200">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-secondary !p-2"><i class="fas fa-angle-right"></i></a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&q={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-secondary !p-2"><i class="fas fa-angle-double-right"></i></a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

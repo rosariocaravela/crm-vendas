@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-users text-2xl text-blue-400"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium text-dark-400">Total Clientes</h3>
+                <p class="text-2xl font-semibold text-dark-200">{{ total_clients }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-handshake text-2xl text-purple-400"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium text-dark-400">Oportunidades</h3>
+                <p class="text-2xl font-semibold text-dark-200">{{ total_deals }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-dollar-sign text-2xl text-yellow-400"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium text-dark-400">Valor do Pipeline</h3>
+                <p class="text-2xl font-semibold text-dark-200">R$ {{ total_pipeline_value|floatformat:2|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card p-6 bg-dark-950 rounded-xl border border-dark-700">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-chart-pie text-2xl text-green-400"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium text-dark-400">Taxa de Conversão</h3>
+                <p class="text-2xl font-semibold text-dark-200">{{ conversion_rate|floatformat:1 }}%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6">
+        <h3 class="text-lg font-medium text-dark-200 mb-4">Vendas por Mês</h3>
+        <canvas id="monthlyRevenueChart" height="250"></canvas>
+    </div>
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6">
+        <h3 class="text-lg font-medium text-dark-200 mb-4">Oportunidades por Etapa</h3>
+        <canvas id="dealsByStageChart" height="250"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6">
+        <h3 class="text-lg font-medium text-dark-200 mb-4">Atividades Recentes</h3>
+        <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div class="flex items-start">
+                <div class="flex-shrink-0 mt-1">
+                    <span class="badge {% if activity.type == 'LIGAÇÃO' %}badge-blue{% elif activity.type == 'EMAIL' %}badge-yellow{% elif activity.type == 'REUNIÃO' %}badge-purple{% else %}badge-green{% endif %}">{{ activity.get_type_display }}</span>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-dark-200">{{ activity.client.name }}</p>
+                    <p class="text-sm text-dark-400 truncate w-64">{{ activity.description }}</p>
+                    <p class="text-xs text-dark-400">{{ activity.created_at|timesince }} atrás</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-dark-400 text-sm">Nenhuma atividade recente.</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-dark-950 border border-dark-700 rounded-xl p-6">
+        <h3 class="text-lg font-medium text-dark-200 mb-4">Últimas Oportunidades</h3>
+        <div class="space-y-4">
+            {% for deal in recent_deals %}
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-dark-200">{{ deal.title }}</p>
+                    <p class="text-sm text-dark-400">{{ deal.client.name }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-dark-200">R$ {{ deal.value|floatformat:2|intcomma }}</p>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background-color: {{ deal.stage.color }}20; color: {{ deal.stage.color }}">
+                        {{ deal.stage.name }}
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-dark-400 text-sm">Nenhuma oportunidade recente.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#334155';
+    
+    // Vendas por Mês
+    const ctxMonthly = document.getElementById('monthlyRevenueChart').getContext('2d');
+    const monthlyData = {{ monthly_revenue|safe }};
+    new Chart(ctxMonthly, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(d => d.month),
+            datasets: [{
+                label: 'Receita (R$)',
+                data: monthlyData.map(d => d.revenue),
+                backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                borderColor: 'rgb(99, 102, 241)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#e2e8f0' } }
+            },
+            scales: {
+                y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // Oportunidades por Etapa
+    const ctxStage = document.getElementById('dealsByStageChart').getContext('2d');
+    const stageData = {{ deals_by_stage|safe }};
+    new Chart(ctxStage, {
+        type: 'doughnut',
+        data: {
+            labels: stageData.map(d => d.name),
+            datasets: [{
+                data: stageData.map(d => d.count),
+                backgroundColor: stageData.map(d => d.color),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#e2e8f0' } }
+            }
+        }
+    });
+</script>
+{% endblock %}
